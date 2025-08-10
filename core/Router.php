@@ -63,7 +63,7 @@ class Router
             $url = substr($url, 0, $qpos);
         }
 
-        // ตัด base path (เช่น /new-cps) ออก
+        // ตัด base path (เช่น /cps) ออก
         $base = dirname($_SERVER['SCRIPT_NAME']);
         if ($base !== '/' && strpos($url, $base) === 0) {
             $url = substr($url, strlen($base));
