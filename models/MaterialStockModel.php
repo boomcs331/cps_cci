@@ -79,6 +79,21 @@ class MaterialStockModel extends Model
     }
 
     /**
+     * Get excess stock materials (above minimum quantity * 2)
+     */
+    public function getExcessStockMaterials()
+    {
+        $sql = "SELECT ms.*, m.mat_id, m.mat_name, m.min_qty, m.supplier, m.location 
+                FROM {$this->table} ms 
+                JOIN materials m ON ms.material_id = m.id 
+                WHERE ms.current_qty > m.min_qty * 2 AND m.active = 1 
+                ORDER BY (ms.current_qty - m.min_qty * 2) DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Get stock summary statistics
      */
     public function getStockSummary()
@@ -89,7 +104,8 @@ class MaterialStockModel extends Model
                     SUM(m.min_qty) as total_min_qty,
                     COUNT(CASE WHEN ms.current_qty > 0 AND ms.current_qty <= m.min_qty THEN 1 END) as low_stock_count,
                     COUNT(CASE WHEN ms.current_qty = 0 THEN 1 END) as out_of_stock_count,
-                    COUNT(CASE WHEN ms.current_qty > m.min_qty THEN 1 END) as normal_stock_count
+                    COUNT(CASE WHEN ms.current_qty > m.min_qty AND ms.current_qty <= m.min_qty * 2 THEN 1 END) as normal_stock_count,
+                    COUNT(CASE WHEN ms.current_qty > m.min_qty * 2 THEN 1 END) as excess_stock_count
                 FROM {$this->table} ms 
                 JOIN materials m ON ms.material_id = m.id 
                 WHERE m.active = 1";
@@ -277,13 +293,16 @@ class MaterialStockModel extends Model
         if (!empty($status_filter)) {
             switch ($status_filter) {
                 case 'normal':
-                    $where_conditions[] = "ms.current_qty > m.min_qty";
+                    $where_conditions[] = "ms.current_qty > m.min_qty AND ms.current_qty <= m.min_qty * 2";
                     break;
                 case 'low':
-                    $where_conditions[] = "ms.current_qty <= m.min_qty AND ms.current_qty > 0";
+                    $where_conditions[] = "ms.current_qty > 0 AND ms.current_qty <= m.min_qty";
                     break;
                 case 'out_of_stock':
                     $where_conditions[] = "ms.current_qty = 0";
+                    break;
+                case 'excess':
+                    $where_conditions[] = "ms.current_qty > m.min_qty * 2";
                     break;
             }
         }

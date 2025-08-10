@@ -18,7 +18,7 @@
                 <div class="card-body">
                     <!-- Summary Cards -->
                     <div class="row mb-4">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="card bg-primary text-white">
                                 <div class="card-body text-center">
                                     <h4><?= number_format($summary['total_materials']) ?></h4>
@@ -26,7 +26,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="card bg-success text-white">
                                 <div class="card-body text-center">
                                     <h4><?= number_format($summary['normal_stock_count']) ?></h4>
@@ -34,7 +34,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="card bg-warning text-white">
                                 <div class="card-body text-center">
                                     <h4><?= number_format($summary['low_stock_count']) ?></h4>
@@ -42,11 +42,19 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="card bg-danger text-white">
                                 <div class="card-body text-center">
                                     <h4><?= number_format($summary['out_of_stock_count']) ?></h4>
                                     <p class="mb-0">หมดสต็อก</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h4><?= number_format($summary['excess_stock_count']) ?></h4>
+                                    <p class="mb-0">สต็อกเกิน</p>
                                 </div>
                             </div>
                         </div>
@@ -65,7 +73,24 @@
                                         <?php if (!empty($filters['status'])): ?>
                                             <?= !empty($filters['search']) ? ' และ ' : '' ?>
                                             สถานะ:
-                                            <?= $filters['status'] === 'normal' ? 'ปกติ' : ($filters['status'] === 'low' ? 'สต็อกต่ำ' : 'หมดสต็อก') ?>
+                                            <?php 
+                                            switch($filters['status']) {
+                                                case 'normal':
+                                                    echo 'ปกติ';
+                                                    break;
+                                                case 'low':
+                                                    echo 'สต็อกต่ำ';
+                                                    break;
+                                                case 'out_of_stock':
+                                                    echo 'หมดสต็อก';
+                                                    break;
+                                                case 'excess':
+                                                    echo 'สต็อกเกิน';
+                                                    break;
+                                                default:
+                                                    echo $filters['status'];
+                                            }
+                                            ?>
                                         <?php endif; ?>
                                         <?php if (empty($filters['search']) && empty($filters['status'])): ?>
                                             แสดงวัสดุทั้งหมด
@@ -103,6 +128,7 @@
                                         <option value="normal" <?= (isset($filters['status']) ? $filters['status'] : '') === 'normal' ? 'selected' : '' ?>>ปกติ</option>
                                         <option value="low" <?= (isset($filters['status']) ? $filters['status'] : '') === 'low' ? 'selected' : '' ?>>สต็อกต่ำ</option>
                                         <option value="out_of_stock" <?= (isset($filters['status']) ? $filters['status'] : '') === 'out_of_stock' ? 'selected' : '' ?>>หมดสต็อก</option>
+                                        <option value="excess" <?= (isset($filters['status']) ? $filters['status'] : '') === 'excess' ? 'selected' : '' ?>>สต็อกเกิน</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
@@ -210,6 +236,8 @@
                                                     <span class="badge bg-danger">หมดสต็อก</span>
                                                 <?php elseif ($item['current_qty'] > 0 && $item['current_qty'] <= $item['min_qty']): ?>
                                                     <span class="badge bg-warning">สต็อกต่ำ</span>
+                                                <?php elseif ($item['current_qty'] > $item['min_qty'] * 2): ?>
+                                                    <span class="badge bg-info">สต็อกเกิน</span>
                                                 <?php else: ?>
                                                     <span class="badge bg-success">ปกติ</span>
                                                 <?php endif; ?>
@@ -341,6 +369,61 @@
                                                 <td>
                                                     <span class="badge bg-danger">
                                                         <?= number_format($item['min_qty'] - $item['current_qty']) ?>
+                                                    </span>
+                                                </td>
+                                                <td><?= htmlspecialchars($item['supplier']) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Excess Stock Details -->
+                    <?php if (!empty($excess_stock)): ?>
+                        <div class="mt-4">
+                            <h5>
+                                <i class="fas fa-arrow-up me-2 text-info"></i>
+                                รายการสต็อกเกิน
+                                <span class="badge bg-info text-dark"><?= count($excess_stock) ?> รายการ</span>
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-info">
+                                    <thead>
+                                        <tr>
+                                            <th>รหัสวัสดุ</th>
+                                            <th>ชื่อวัสดุ</th>
+                                            <th>สต็อกปัจจุบัน</th>
+                                            <th>จำนวนขั้นต่ำ</th>
+                                            <th>อัตราส่วน</th>
+                                            <th>เกิน</th>
+                                            <th>ซัพพลายเออร์</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($excess_stock as $item): ?>
+                                            <tr>
+                                                <td><strong><?= htmlspecialchars($item['mat_id']) ?></strong></td>
+                                                <td><?= htmlspecialchars($item['mat_name']) ?></td>
+                                                <td>
+                                                    <span class="badge bg-info">
+                                                        <?= number_format($item['current_qty']) ?>
+                                                    </span>
+                                                </td>
+                                                <td><?= number_format($item['min_qty']) ?></td>
+                                                <td>
+                                                    <?php
+                                                    $stock_ratio = $item['min_qty'] > 0 ? ($item['current_qty'] / $item['min_qty']) * 100 : 0;
+                                                    $ratio_color = $stock_ratio >= 200 ? 'info' : 'success';
+                                                    ?>
+                                                    <span class="badge bg-<?= $ratio_color ?>">
+                                                        <?= number_format($stock_ratio, 1) ?>%
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">
+                                                        <?= number_format($item['current_qty'] - $item['min_qty'] * 2) ?>
                                                     </span>
                                                 </td>
                                                 <td><?= htmlspecialchars($item['supplier']) ?></td>

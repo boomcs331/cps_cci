@@ -34,10 +34,17 @@ class MaterialTransactionController extends Controller
             'transaction_type' => isset($_GET['transaction_type']) ? $_GET['transaction_type'] : '',
             'date_from' => isset($_GET['date_from']) ? $_GET['date_from'] : '',
             'date_to' => isset($_GET['date_to']) ? $_GET['date_to'] : '',
-            'search' => isset($_GET['search']) ? trim($_GET['search']) : ''
+            'search' => isset($_GET['search']) ? trim($_GET['search']) : '',
+            'per_page' => isset($_GET['per_page']) ? (int)$_GET['per_page'] : 20
         ];
         
-        $result = $this->transactionModel->getAllTransactions($page, 20, $filters);
+        // Validate per_page to prevent invalid values
+        $valid_per_pages = [10, 20, 50, 100];
+        if (!in_array($filters['per_page'], $valid_per_pages)) {
+            $filters['per_page'] = 20;
+        }
+        
+        $result = $this->transactionModel->getAllTransactions($page, $filters['per_page'], $filters);
         
         $data = [
             'title' => 'รายการธุรกรรมวัสดุ - CPS',
@@ -45,7 +52,8 @@ class MaterialTransactionController extends Controller
             'pagination' => [
                 'current_page' => $result['current_page'],
                 'last_page' => $result['last_page'],
-                'total' => $result['total']
+                'total' => $result['total'],
+                'per_page' => $result['per_page']
             ],
             'filters' => $filters,
             'materials' => $this->materialsModel->getAllMaterials(1, 1000)['data']
@@ -327,6 +335,7 @@ class MaterialTransactionController extends Controller
             'stock_items' => $result['data'],
             'summary' => $this->stockModel->getStockSummary(),
             'low_stock' => $this->stockModel->getLowStockMaterials(),
+            'excess_stock' => $this->stockModel->getExcessStockMaterials(),
             'pagination' => [
                 'current_page' => $result['current_page'],
                 'last_page' => $result['last_page'],

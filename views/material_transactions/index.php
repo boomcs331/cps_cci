@@ -32,7 +32,7 @@ require_once 'views/layouts/header.php';
                                 <select name="material_id" class="form-select">
                                     <option value="">ทั้งหมด</option>
                                     <?php foreach ($materials as $material): ?>
-                                        <option value="<?= $material['id'] ?>" <?= $filters['material_id'] == $material['id'] ? 'selected' : '' ?>>
+                                        <option value="<?= $material['id'] ?>" <?= (isset($filters['material_id']) ? $filters['material_id'] : '') == $material['id'] ? 'selected' : '' ?>>
                                             <?= htmlspecialchars($material['mat_id']) ?> - <?= htmlspecialchars($material['mat_name']) ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -42,35 +42,67 @@ require_once 'views/layouts/header.php';
                                 <label class="form-label">ประเภท</label>
                                 <select name="transaction_type" class="form-select">
                                     <option value="">ทั้งหมด</option>
-                                    <option value="IN" <?= $filters['transaction_type'] === 'IN' ? 'selected' : '' ?>>รับเข้า</option>
-                                    <option value="OUT" <?= $filters['transaction_type'] === 'OUT' ? 'selected' : '' ?>>จ่ายออก</option>
+                                    <option value="IN" <?= (isset($filters['transaction_type']) ? $filters['transaction_type'] : '') === 'IN' ? 'selected' : '' ?>>รับเข้า</option>
+                                    <option value="OUT" <?= (isset($filters['transaction_type']) ? $filters['transaction_type'] : '') === 'OUT' ? 'selected' : '' ?>>จ่ายออก</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">วันที่เริ่ม</label>
-                                <input type="date" class="form-control" name="date_from" value="<?= htmlspecialchars($filters['date_from']) ?>">
+                                <input type="date" class="form-control" name="date_from" value="<?= htmlspecialchars(isset($filters['date_from']) ? $filters['date_from'] : '') ?>">
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">วันที่สิ้นสุด</label>
-                                <input type="date" class="form-control" name="date_to" value="<?= htmlspecialchars($filters['date_to']) ?>">
+                                <input type="date" class="form-control" name="date_to" value="<?= htmlspecialchars(isset($filters['date_to']) ? $filters['date_to'] : '') ?>">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">แสดงต่อหน้า</label>
+                                <select name="per_page" class="form-select">
+                                    <option value="10" <?= (isset($filters['per_page']) ? $filters['per_page'] : '20') == '10' ? 'selected' : '' ?>>10 รายการ</option>
+                                    <option value="20" <?= (isset($filters['per_page']) ? $filters['per_page'] : '20') == '20' ? 'selected' : '' ?>>20 รายการ</option>
+                                    <option value="50" <?= (isset($filters['per_page']) ? $filters['per_page'] : '20') == '50' ? 'selected' : '' ?>>50 รายการ</option>
+                                    <option value="100" <?= (isset($filters['per_page']) ? $filters['per_page'] : '20') == '100' ? 'selected' : '' ?>>100 รายการ</option>
+                                </select>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">ค้นหา</label>
-                                <input type="text" class="form-control" name="search" placeholder="ค้นหา..." value="<?= htmlspecialchars($filters['search']) ?>">
+                                <input type="text" class="form-control" name="search" placeholder="ค้นหา..." value="<?= htmlspecialchars(isset($filters['search']) ? $filters['search'] : '') ?>">
                             </div>
-                            <div class="col-md-2">
-                                <label class="form-label">&nbsp;</label>
-                                <div>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-search me-2"></i>ค้นหา
-                                    </button>
-                                    <a href="<?= BASE_URL ?>material-transactions" class="btn btn-outline-secondary">
-                                        <i class="fas fa-times me-2"></i>ล้าง
-                                    </a>
-                                </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fas fa-search me-2"></i>ค้นหา
+                                </button>
+                                <a href="<?= BASE_URL ?>material-transactions" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>ล้าง
+                                </a>
                             </div>
                         </div>
                     </form>
+
+                    <!-- Current Page Summary -->
+                    <?php if (!empty($filters['search']) || !empty($filters['material_id']) || !empty($filters['transaction_type']) || !empty($filters['date_from']) || !empty($filters['date_to'])): ?>
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>ผลการค้นหา:</strong>
+                            <?php if (!empty($filters['search'])): ?>
+                                ค้นหา: "<?= htmlspecialchars($filters['search']) ?>"
+                            <?php endif; ?>
+                            <?php if (!empty($filters['material_id'])): ?>
+                                <?= !empty($filters['search']) ? ' และ ' : '' ?>
+                                วัสดุ: <?= htmlspecialchars($filters['material_id']) ?>
+                            <?php endif; ?>
+                            <?php if (!empty($filters['transaction_type'])): ?>
+                                <?= (!empty($filters['search']) || !empty($filters['material_id'])) ? ' และ ' : '' ?>
+                                ประเภท: <?= $filters['transaction_type'] === 'IN' ? 'รับเข้า' : 'จ่ายออก' ?>
+                            <?php endif; ?>
+                            <?php if (!empty($filters['date_from']) || !empty($filters['date_to'])): ?>
+                                <?= (!empty($filters['search']) || !empty($filters['material_id']) || !empty($filters['transaction_type'])) ? ' และ ' : '' ?>
+                                วันที่: <?= !empty($filters['date_from']) ? htmlspecialchars($filters['date_from']) : 'เริ่มต้น' ?> ถึง <?= !empty($filters['date_to']) ? htmlspecialchars($filters['date_to']) : 'ปัจจุบัน' ?>
+                            <?php endif; ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- Success/Error Messages -->
                     <?php if (isset($_GET['success'])): ?>
@@ -98,6 +130,20 @@ require_once 'views/layouts/header.php';
 
                     <!-- Transactions Table -->
                     <div class="table-responsive">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">
+                                <i class="fas fa-list me-2"></i>
+                                รายการธุรกรรมวัสดุ
+                                <?php if ($pagination['last_page'] > 1): ?>
+                                    <span class="badge bg-secondary ms-2">
+                                        หน้า <?= $pagination['current_page'] ?> จาก <?= $pagination['last_page'] ?>
+                                    </span>
+                                <?php endif; ?>
+                            </h6>
+                            <div class="text-muted small">
+                                แสดง <?= count($transactions) ?> รายการ จากทั้งหมด <?= number_format($pagination['total']) ?> รายการ
+                            </div>
+                        </div>
                         <table class="table table-striped table-hover">
                             <thead class="table-dark">
                                 <tr>
@@ -117,7 +163,13 @@ require_once 'views/layouts/header.php';
                             <tbody>
                                 <?php if (empty($transactions)): ?>
                                     <tr>
-                                        <td colspan="11" class="text-center text-muted">ไม่พบข้อมูลธุรกรรม</td>
+                                        <td colspan="11" class="text-center text-muted py-4">
+                                            <i class="fas fa-inbox fa-2x mb-2 text-muted"></i><br>
+                                            ไม่พบข้อมูลธุรกรรม
+                                            <?php if (!empty($filters['search']) || !empty($filters['material_id']) || !empty($filters['transaction_type']) || !empty($filters['date_from']) || !empty($filters['date_to'])): ?>
+                                                <br><small class="text-muted">ลองปรับเงื่อนไขการค้นหาใหม่</small>
+                                            <?php endif; ?>
+                                        </td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($transactions as $transaction): ?>
@@ -176,39 +228,82 @@ require_once 'views/layouts/header.php';
 
                     <!-- Pagination -->
                     <?php if ($pagination['last_page'] > 1): ?>
-                        <nav aria-label="Transactions pagination">
-                            <ul class="pagination justify-content-center">
-                                <?php if ($pagination['current_page'] > 1): ?>
-                                    <li class="page-item">
-                                        <a class="page-link" href="<?= BASE_URL ?>material-transactions?page=<?= $pagination['current_page'] - 1 ?>&<?= http_build_query($filters) ?>">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </a>
-                                    </li>
-                                <?php endif; ?>
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div class="text-muted">
+                                แสดง <?= count($transactions) ?> รายการ จากทั้งหมด <?= number_format($pagination['total']) ?> รายการ
+                                (หน้า <?= $pagination['current_page'] ?> จาก <?= $pagination['last_page'] ?>)
+                            </div>
+                            <nav aria-label="Transactions pagination">
+                                <ul class="pagination pagination-sm mb-0">
+                                    <!-- First Page -->
+                                    <?php if ($pagination['current_page'] > 1): ?>
+                                        <li class="page-item">
+                                            <a class="page-link" href="<?= BASE_URL ?>material-transactions?page=1&<?= http_build_query($filters) ?>" title="หน้าแรก">
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </a>
+                                        </li>
+                                    <?php endif; ?>
 
-                                <?php for ($i = 1; $i <= $pagination['last_page']; $i++): ?>
-                                    <li class="page-item <?= $i == $pagination['current_page'] ? 'active' : '' ?>">
-                                        <a class="page-link" href="<?= BASE_URL ?>material-transactions?page=<?= $i ?>&<?= http_build_query($filters) ?>">
-                                            <?= $i ?>
-                                        </a>
-                                    </li>
-                                <?php endfor; ?>
+                                    <!-- Previous Page -->
+                                    <?php if ($pagination['current_page'] > 1): ?>
+                                        <li class="page-item">
+                                            <a class="page-link" href="<?= BASE_URL ?>material-transactions?page=<?= $pagination['current_page'] - 1 ?>&<?= http_build_query($filters) ?>" title="หน้าก่อนหน้า">
+                                                <i class="fas fa-angle-left"></i>
+                                            </a>
+                                        </li>
+                                    <?php endif; ?>
 
-                                <?php if ($pagination['current_page'] < $pagination['last_page']): ?>
-                                    <li class="page-item">
-                                        <a class="page-link" href="<?= BASE_URL ?>material-transactions?page=<?= $pagination['current_page'] + 1 ?>&<?= http_build_query($filters) ?>">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </a>
-                                    </li>
-                                <?php endif; ?>
-                            </ul>
-                        </nav>
+                                    <!-- Page Numbers -->
+                                    <?php
+                                    $start_page = max(1, $pagination['current_page'] - 2);
+                                    $end_page = min($pagination['last_page'], $pagination['current_page'] + 2);
+                                    
+                                    if ($start_page > 1): ?>
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    <?php endif; ?>
+
+                                    <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
+                                        <li class="page-item <?= $i == $pagination['current_page'] ? 'active' : '' ?>">
+                                            <a class="page-link" href="<?= BASE_URL ?>material-transactions?page=<?= $i ?>&<?= http_build_query($filters) ?>">
+                                                <?= $i ?>
+                                            </a>
+                                        </li>
+                                    <?php endfor; ?>
+
+                                    <?php if ($end_page < $pagination['last_page']): ?>
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    <?php endif; ?>
+
+                                    <!-- Next Page -->
+                                    <?php if ($pagination['current_page'] < $pagination['last_page']): ?>
+                                        <li class="page-item">
+                                            <a class="page-link" href="<?= BASE_URL ?>material-transactions?page=<?= $pagination['current_page'] + 1 ?>&<?= http_build_query($filters) ?>" title="หน้าถัดไป">
+                                                <i class="fas fa-angle-right"></i>
+                                            </a>
+                                        </li>
+                                    <?php endif; ?>
+
+                                    <!-- Last Page -->
+                                    <?php if ($pagination['current_page'] < $pagination['last_page']): ?>
+                                        <li class="page-item">
+                                            <a class="page-link" href="<?= BASE_URL ?>material-transactions?page=<?= $pagination['last_page'] ?>&<?= http_build_query($filters) ?>" title="หน้าสุดท้าย">
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </a>
+                                        </li>
+                                    <?php endif; ?>
+                                </ul>
+                            </nav>
+                        </div>
+                    <?php else: ?>
+                        <!-- Summary when no pagination needed -->
+                        <div class="text-muted text-center mt-3">
+                            แสดง <?= count($transactions) ?> รายการ จากทั้งหมด <?= number_format($pagination['total']) ?> รายการ
+                        </div>
                     <?php endif; ?>
-
-                    <!-- Summary -->
-                    <div class="text-muted text-center mt-3">
-                        แสดง <?= count($transactions) ?> รายการ จากทั้งหมด <?= $pagination['total'] ?> รายการ
-                    </div>
                 </div>
             </div>
         </div>
