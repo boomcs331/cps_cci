@@ -313,11 +313,30 @@ class MaterialTransactionController extends Controller
         // Update all stock from transactions first
         $this->stockModel->updateAllStockFromTransactions();
         
+        // Get pagination parameters
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 20;
+        $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
+        
+        // Get stock data with pagination
+        $result = $this->stockModel->getAllCurrentStockFromTransactionsPaginated($page, $per_page, $search, $status_filter);
+        
         $data = [
             'title' => 'รายงานสต็อกวัสดุ - CPS',
-            'stock_items' => $this->stockModel->getAllCurrentStockFromTransactions(),
+            'stock_items' => $result['data'],
             'summary' => $this->stockModel->getStockSummary(),
-            'low_stock' => $this->stockModel->getLowStockMaterials()
+            'low_stock' => $this->stockModel->getLowStockMaterials(),
+            'pagination' => [
+                'current_page' => $result['current_page'],
+                'last_page' => $result['last_page'],
+                'total' => $result['total'],
+                'per_page' => $per_page
+            ],
+            'filters' => [
+                'search' => $search,
+                'status' => $status_filter
+            ]
         ];
 
         $this->view('material_transactions/stock', $data);

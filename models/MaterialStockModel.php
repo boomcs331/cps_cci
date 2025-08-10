@@ -64,14 +64,14 @@ class MaterialStockModel extends Model
     }
 
     /**
-     * Get low stock materials (below minimum quantity)
+     * Get low stock materials (below minimum quantity but not out of stock)
      */
     public function getLowStockMaterials()
     {
         $sql = "SELECT ms.*, m.mat_id, m.mat_name, m.min_qty, m.supplier, m.location 
                 FROM {$this->table} ms 
                 JOIN materials m ON ms.material_id = m.id 
-                WHERE ms.current_qty <= m.min_qty AND m.active = 1 
+                WHERE ms.current_qty > 0 AND ms.current_qty <= m.min_qty AND m.active = 1 
                 ORDER BY (m.min_qty - ms.current_qty) DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
@@ -87,8 +87,9 @@ class MaterialStockModel extends Model
                     COUNT(*) as total_materials,
                     SUM(ms.current_qty) as total_stock,
                     SUM(m.min_qty) as total_min_qty,
-                    COUNT(CASE WHEN ms.current_qty <= m.min_qty THEN 1 END) as low_stock_count,
-                    COUNT(CASE WHEN ms.current_qty = 0 THEN 1 END) as out_of_stock_count
+                    COUNT(CASE WHEN ms.current_qty > 0 AND ms.current_qty <= m.min_qty THEN 1 END) as low_stock_count,
+                    COUNT(CASE WHEN ms.current_qty = 0 THEN 1 END) as out_of_stock_count,
+                    COUNT(CASE WHEN ms.current_qty > m.min_qty THEN 1 END) as normal_stock_count
                 FROM {$this->table} ms 
                 JOIN materials m ON ms.material_id = m.id 
                 WHERE m.active = 1";
@@ -255,6 +256,104 @@ class MaterialStockModel extends Model
         }
         
         return $materials;
+    }
+    
+    /**
+     * Get current stock for all materials with pagination and filters
+     */
+    public function getAllCurrentStockFromTransactionsPaginated($page = 1, $per_page = 20, $search = '', $status_filter = '')
+    {
+        $offset = ($page - 1) * $per_page;
+        
+        // Build WHERE clause for search and status filter
+        $where_conditions = ['m.active = 1'];
+        $params = [];
+        
+        if (!empty($search)) {
+            $where_conditions[] = "(m.mat_id LIKE :search OR m.mat_name LIKE :search OR m.supplier LIKE :search)";
+            $params[':search'] = "%{$search}%";
+        }
+        
+        if (!empty($status_filter)) {
+            switch ($status_filter) {
+                case 'normal':
+                    $where_conditions[] = "ms.current_qty > m.min_qty";
+                    break;
+                case 'low':
+                    $where_conditions[] = "ms.current_qty <= m.min_qty AND ms.current_qty > 0";
+                    break;
+                case 'out_of_stock':
+                    $where_conditions[] = "ms.current_qty = 0";
+                    break;
+            }
+        }
+        
+        $where_clause = implode(' AND ', $where_conditions);
+        
+        // Get total count for pagination
+        $count_sql = "SELECT COUNT(*) as total FROM materials m 
+                      LEFT JOIN {$this->table} ms ON m.id = ms.material_id 
+                      WHERE {$where_clause}";
+        $count_stmt = $this->db->prepare($count_sql);
+        foreach ($params as $key => $value) {
+            $count_stmt->bindValue($key, $value);
+        }
+        $count_stmt->execute();
+        $total = $count_stmt->fetch()['total'];
+        
+        // Get paginated data
+        $sql = "SELECT 
+                    m.id as material_id,
+                    m.mat_id,
+                    m.mat_name,
+                    m.min_qty,
+                    m.supplier,
+                    m.location,
+                    COALESCE(ms.current_qty, 0) as current_qty,
+                    COALESCE(ms.last_updated, '') as last_updated
+                FROM materials m 
+                LEFT JOIN {$this->table} ms ON m.id = ms.material_id 
+                WHERE {$where_clause}
+                ORDER BY m.mat_id
+                LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $materials = $stmt->fetchAll();
+        
+        // Calculate actual stock from transactions for each material
+        foreach ($materials as &$material) {
+            $stock_data = $this->calculateStockFromTransactions($material['material_id']);
+            if ($stock_data) {
+                $material['calculated_qty'] = (int)$stock_data['net_quantity'];
+                $material['total_in'] = (int)$stock_data['total_in'];
+                $material['total_out'] = (int)$stock_data['total_out'];
+                
+                // Update the current_qty if it's different from calculated
+                if ($material['current_qty'] != $material['calculated_qty']) {
+                    $material['current_qty'] = $material['calculated_qty'];
+                    $material['needs_update'] = true;
+                }
+            } else {
+                $material['calculated_qty'] = 0;
+                $material['total_in'] = 0;
+                $material['total_out'] = 0;
+                $material['needs_update'] = false;
+            }
+        }
+        
+        return [
+            'data' => $materials,
+            'current_page' => $page,
+            'last_page' => ceil($total / $per_page),
+            'total' => $total,
+            'per_page' => $per_page
+        ];
     }
 }
 ?> 
