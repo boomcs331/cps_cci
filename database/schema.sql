@@ -52,6 +52,7 @@ CREATE TABLE materials (
     mat_name VARCHAR(255) NOT NULL,
     lr VARCHAR(50),
     min_qty INT DEFAULT 0,
+    due INT DEFAULT 2,
     packing VARCHAR(100),
     supplier VARCHAR(255),
     location VARCHAR(255),
@@ -61,12 +62,12 @@ CREATE TABLE materials (
 ) ENGINE=InnoDB;
 
 -- Insert sample materials
-INSERT INTO materials (mat_id, mat_name, lr, min_qty, packing, supplier, location, img, active) VALUES 
-('MAT001', 'CPU Intel Core i7', 'LR001', 10, '500', 'Intel Corporation', 'Warehouse A - Shelf 1', 'cpu_intel_i7.jpg', 1),
-('MAT002', 'RAM DDR4 16GB', 'LR002', 20, '100', 'Kingston Technology', 'Warehouse A - Shelf 2', 'ram_ddr4_16gb.jpg', 1),
-('MAT003', 'SSD 500GB', 'LR003', 15, '200', 'Samsung Electronics', 'Warehouse B - Shelf 1', 'ssd_500gb.jpg', 1),
-('MAT004', 'Motherboard ATX', 'LR004', 8, '50', 'ASUS', 'Warehouse B - Shelf 2', 'motherboard_atx.jpg', 1),
-('MAT005', 'Power Supply 650W', 'LR005', 12, '100', 'Corsair', 'Warehouse C - Shelf 1', 'psu_650w.jpg', 1);
+INSERT INTO materials (mat_id, mat_name, lr, min_qty, due, packing, supplier, location, img, active) VALUES 
+('MAT001', 'CPU Intel Core i7', 'LR001', 10, 2, '500', 'Intel Corporation', 'Warehouse A - Shelf 1', 'cpu_intel_i7.jpg', 1),
+('MAT002', 'RAM DDR4 16GB', 'LR002', 20, 2, '100', 'Kingston Technology', 'Warehouse A - Shelf 2', 'ram_ddr4_16gb.jpg', 1),
+('MAT003', 'SSD 500GB', 'LR003', 15, 2, '200', 'Samsung Electronics', 'Warehouse B - Shelf 1', 'ssd_500gb.jpg', 1),
+('MAT004', 'Motherboard ATX', 'LR004', 8, 2, '50', 'ASUS', 'Warehouse B - Shelf 2', 'motherboard_atx.jpg', 1),
+('MAT005', 'Power Supply 650W', 'LR005', 12, 2, '100', 'Corsair', 'Warehouse C - Shelf 1', 'psu_650w.jpg', 1);
 
 -- Material Stock table (for tracking current stock)
 CREATE TABLE material_stock (

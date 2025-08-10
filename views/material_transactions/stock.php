@@ -220,11 +220,18 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="badge bg-secondary"><?= number_format($item['min_qty']) ?></span>
+                                                <span class="badge bg-secondary"></span>
+                                                    <?= number_format($item['min_qty'] * (isset($item['due']) ? $item['due'] : 2)) ?>
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">
+                                                    (<?= number_format($item['min_qty']) ?> × <?= isset($item['due']) ? $item['due'] : 2 ?>)
+                                                </small>
                                             </td>
                                             <td>
                                                 <?php
-                                                $stock_ratio = $item['min_qty'] > 0 ? ($item['current_qty'] / $item['min_qty']) * 100 : 0;
+                                                $effective_min_qty = $item['min_qty'] * (isset($item['due']) ? $item['due'] : 2);
+                                                $stock_ratio = $effective_min_qty > 0 ? ($item['current_qty'] / $effective_min_qty) * 100 : 0;
                                                 $ratio_color = $stock_ratio >= 100 ? 'success' : ($stock_ratio >= 50 ? 'warning' : 'danger');
                                                 ?>
                                                 <span class="badge bg-<?= $ratio_color ?>">
@@ -356,10 +363,17 @@
                                                         <?= number_format($item['current_qty']) ?>
                                                     </span>
                                                 </td>
-                                                <td><?= number_format($item['min_qty']) ?></td>
+                                                <td>
+                                                    <?= number_format($item['min_qty'] * (isset($item['due']) ? $item['due'] : 2)) ?>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        (<?= number_format($item['min_qty']) ?> × <?= isset($item['due']) ? $item['due'] : 2 ?>)
+                                                    </small>
+                                                </td>
                                                 <td>
                                                     <?php
-                                                    $stock_ratio = $item['min_qty'] > 0 ? ($item['current_qty'] / $item['min_qty']) * 100 : 0;
+                                                    $effective_min_qty = $item['min_qty'] * (isset($item['due']) ? $item['due'] : 2);
+                                                    $stock_ratio = $effective_min_qty > 0 ? ($item['current_qty'] / $effective_min_qty) * 100 : 0;
                                                     $ratio_color = $stock_ratio >= 100 ? 'success' : ($stock_ratio >= 50 ? 'warning' : 'danger');
                                                     ?>
                                                     <span class="badge bg-<?= $ratio_color ?>">
@@ -368,7 +382,7 @@
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-danger">
-                                                        <?= number_format($item['min_qty'] - $item['current_qty']) ?>
+                                                        <?= number_format(($item['min_qty'] * (isset($item['due']) ? $item['due'] : 2)) - $item['current_qty']) ?>
                                                     </span>
                                                 </td>
                                                 <td><?= htmlspecialchars($item['supplier']) ?></td>
@@ -411,10 +425,17 @@
                                                         <?= number_format($item['current_qty']) ?>
                                                     </span>
                                                 </td>
-                                                <td><?= number_format($item['min_qty']) ?></td>
+                                                <td>
+                                                    <?= number_format($item['min_qty'] * (isset($item['due']) ? $item['due'] : 2)) ?>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        (<?= number_format($item['min_qty']) ?> × <?= isset($item['due']) ? $item['due'] : 2 ?>)
+                                                    </small>
+                                                </td>
                                                 <td>
                                                     <?php
-                                                    $stock_ratio = $item['min_qty'] > 0 ? ($item['current_qty'] / $item['min_qty']) * 100 : 0;
+                                                    $effective_min_qty = $item['min_qty'] * (isset($item['due']) ? $item['due'] : 2);
+                                                    $stock_ratio = $effective_min_qty > 0 ? ($item['current_qty'] / $effective_min_qty) * 100 : 0;
                                                     $ratio_color = $stock_ratio >= 200 ? 'info' : 'success';
                                                     ?>
                                                     <span class="badge bg-<?= $ratio_color ?>">
@@ -423,7 +444,7 @@
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-info">
-                                                        <?= number_format($item['current_qty'] - $item['min_qty'] * 2) ?>
+                                                        <?= number_format($item['current_qty'] - ($item['min_qty'] * (isset($item['due']) ? $item['due'] : 2))) ?>
                                                     </span>
                                                 </td>
                                                 <td><?= htmlspecialchars($item['supplier']) ?></td>

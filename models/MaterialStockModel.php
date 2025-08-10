@@ -68,7 +68,7 @@ class MaterialStockModel extends Model
      */
     public function getLowStockMaterials()
     {
-        $sql = "SELECT ms.*, m.mat_id, m.mat_name, m.min_qty, m.supplier, m.location 
+        $sql = "SELECT ms.*, m.mat_id, m.mat_name, m.min_qty, m.due, m.supplier, m.location 
                 FROM {$this->table} ms 
                 JOIN materials m ON ms.material_id = m.id 
                 WHERE ms.current_qty > 0 AND ms.current_qty <= m.min_qty AND m.active = 1 
@@ -83,7 +83,7 @@ class MaterialStockModel extends Model
      */
     public function getExcessStockMaterials()
     {
-        $sql = "SELECT ms.*, m.mat_id, m.mat_name, m.min_qty, m.supplier, m.location 
+        $sql = "SELECT ms.*, m.mat_id, m.mat_name, m.min_qty, m.due, m.supplier, m.location 
                 FROM {$this->table} ms 
                 JOIN materials m ON ms.material_id = m.id 
                 WHERE ms.current_qty > m.min_qty * 2 AND m.active = 1 
@@ -326,6 +326,7 @@ class MaterialStockModel extends Model
                     m.mat_id,
                     m.mat_name,
                     m.min_qty,
+                    m.due,
                     m.supplier,
                     m.location,
                     COALESCE(ms.current_qty, 0) as current_qty,
