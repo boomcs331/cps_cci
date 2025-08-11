@@ -17,7 +17,12 @@
                 <?php if ($_SESSION['role'] == 'pc' || $_SESSION['role'] == 'admin'): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="<?= BASE_URL ?>materials">
-                        <i class="fas fa-boxes me-1"></i>จัดการวัสดุ
+                        <i class="fas fa-boxes me-1"></i>ข้อมูลวัสดุ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= BASE_URL ?>material-transactions">
+                        <i class="fas fa-boxes me-1"></i>ธุรกรรมวัสดุ
                     </a>
                 </li>
                 <?php endif; ?>

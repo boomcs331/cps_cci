@@ -1,4 +1,4 @@
-<?php require_once 'views/layouts/header.php'; ?>
+<?php require_once 'views/layouts/main.php'; ?>
 
 <div class="container mt-4">
     <div class="row justify-content-center">

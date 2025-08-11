@@ -1,4 +1,4 @@
-<?php require_once 'views/layouts/header.php'; ?>
+<?php require_once 'views/layouts/main.php'; ?>
 
 <div class="container mt-4">
     <div class="row">
@@ -183,5 +183,3 @@ function confirmDelete(id) {
     modal.show();
 }
 </script>
-
-<?php require_once 'views/layouts/footer.php'; ?> 

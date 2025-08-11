@@ -1,8 +1,8 @@
 <?php 
-require_once 'views/layouts/header.php';
+require_once 'views/layouts/main.php';
 ?>
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-12">
             <div class="card">
