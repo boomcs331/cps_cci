@@ -205,7 +205,15 @@ require_once 'views/layouts/main.php';
                                             </td>
                                             <td>
                                                 <?php if ($transaction['transaction_type'] === 'IN' && !empty($transaction['qr_code'])): ?>
-                                                    <span class="badge bg-primary small"><?= htmlspecialchars($transaction['qr_code']) ?></span>
+                                                    <div class="text-center">
+                                                        <img src="<?= BASE_URL ?>qr_generator.php?data=<?= urlencode($transaction['qr_code']) ?>" 
+                                                             alt="QR Code: <?= htmlspecialchars($transaction['qr_code']) ?>" 
+                                                             class="img-fluid" 
+                                                             style="max-width: 60px; height: auto;"
+                                                             title="<?= htmlspecialchars($transaction['qr_code']) ?>">
+                                                        <br>
+                                                        <small class="text-muted"><?= htmlspecialchars($transaction['qr_code']) ?></small>
+                                                    </div>
                                                 <?php else: ?>
                                                     -
                                                 <?php endif; ?>
