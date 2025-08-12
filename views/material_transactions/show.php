@@ -188,7 +188,6 @@ require_once 'views/layouts/main.php';
                                 </div>
                             </div>
                         </div>
-                        
                         <!-- Action Buttons -->
                         <div class="row mt-4">
                             <div class="col-md-12 text-center">
