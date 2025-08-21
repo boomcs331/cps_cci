@@ -13,7 +13,39 @@
                             <h5>Welcome, <?= htmlspecialchars($user['user_name']) ?>!</h5>
                             <p class="text-muted">User ID: <?= htmlspecialchars($user['user_id']) ?></p>
                             <p class="text-muted">Name: <?= htmlspecialchars($user['user_name']) ?></p>
-                            <p class="text-muted">Role: <?= htmlspecialchars(ucfirst($user['role'])) ?></p>
+                            <?php
+                            // Ensure roles are an array; support comma-separated string or array
+                            $roles = isset($user['roles']) ? $user['roles'] : [];
+                            if (!is_array($roles)) {
+                                $roles = array_filter(array_map('trim', explode(',', (string)$roles)));
+                            }
+                            ?>
+                            <div class="mb-2">
+                                <small class="text-muted">Roles:</small>
+                                <div class="mt-1 badges-row">
+                                    <?php if (empty($roles)): ?>
+                                        <span class="text-muted">None</span>
+                                    <?php else: ?>
+                                        <?php foreach ($roles as $r):
+                                            $clean = trim($r);
+                                            $label = htmlspecialchars(ucfirst((string)$clean));
+                                            $roleClass = 'role-' . preg_replace('/[^a-z0-9_-]/', '', strtolower($clean));
+                                        ?>
+                                            <span class="badge-role badge-role--sm badge-role--dark badge-role-pill <?= $roleClass ?> me-1 mb-1" title="<?= $label ?>">
+                                                <?php if (strtolower($clean) === 'admin'): ?>
+                                                    <i class="fas fa-user-shield me-1"></i>
+                                                <?php elseif (strtolower($clean) === 'staff'): ?>
+                                                    <i class="fas fa-briefcase me-1"></i>
+                                                <?php elseif (strtolower($clean) === 'viewer'): ?>
+                                                    <i class="fas fa-eye me-1"></i>
+                                                <?php endif; ?>
+                                                <?= $label ?>
+                                            </span>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        
                         </div>
                         <div class="col-md-6 text-end">
                             <a href="<?= BASE_URL ?>logout" class="btn btn-danger">

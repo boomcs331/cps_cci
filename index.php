@@ -23,6 +23,10 @@ $router->addRoute('/dashboard', 'HomeController', 'dashboard');
 $router->addRoute('/admin/dashboard', 'AdminController', 'dashboard');
 $router->addRoute('/pc/dashboard', 'PcController', 'dashboard');
 $router->addRoute('/user/dashboard', 'UserController', 'dashboard');
+$router->addRoute('/dashboard/dashboard', 'HomeController', 'dashboard');
+
+
+
 
 
 // Fallback for direct access (when .htaccess doesn't work)

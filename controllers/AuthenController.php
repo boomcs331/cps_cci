@@ -13,19 +13,7 @@ class AuthenController extends Controller
     {
         // ถ้า login แล้วให้ redirect ไปหน้า dashboard
         if ($this->isLoggedIn()) {
-            switch ($_SESSION['role']) {
-                case 'admin':
-                    $this->redirect('admin/dashboard');
-                    break;
-                case 'pc':
-                    $this->redirect('pc/dashboard');
-                    break;
-                case 'user':
-                    $this->redirect('user/dashboard');
-                    break;
-                default:
-                    $this->redirect('admin/dashboard');
-            }
+            $this->redirect('dashboard/dashboard');
         }
 
         $this->view('Login/login');
@@ -45,22 +33,7 @@ class AuthenController extends Controller
             if ($user) {
                 $this->createSession($user);
                 // Redirect to dashboard after successful login
-                switch ($_SESSION['role']) {
-                    case 'admin':
-                        $this->redirect('admin/dashboard');
-                        break;
-                    case 'pc':
-                        $this->redirect('pc/dashboard');
-                        break;
-                    case 'we':
-                        $this->redirect('we/dashboard');
-                        break;
-                    case 'user':
-                        $this->redirect('user/dashboard');
-                        break;
-                    default:
-                        $this->redirect('admin/dashboard');
-                }
+                $this->redirect('dashboard/dashboard');
             } else {
                 $this->view('Login/login', ['error' => 'User ID ไม่ถูกต้อง']);
             }
@@ -78,11 +51,23 @@ class AuthenController extends Controller
 
         // เก็บข้อมูล user ใน session
         $_SESSION['user_id'] = $user['user_id'];
-        $_SESSION['user_name'] = $user['full_name'];
-        $_SESSION['user_email'] = $user['email'];
+        $_SESSION['user_name'] = $user['name'];
         $_SESSION['user_db_id'] = $user['id']; // Store the actual database ID
+        // Always store roles as array
+        if (isset($user['roles']) && is_array($user['roles'])) {
+            $_SESSION['roles'] = $user['roles'];
+        } elseif (isset($user['role'])) {
+            if (is_array($user['role'])) {
+                $_SESSION['roles'] = $user['role'];
+            } else {
+                // If role is a comma-separated string, split it
+                $_SESSION['roles'] = array_filter(array_map('trim', explode(',', $user['role'])));
+            }
+        } else {
+            $_SESSION['roles'] = ['user'];
+        }
+        // For backward compatibility, keep single role as string
         $_SESSION['role'] = isset($user['role']) ? $user['role'] : 'user';
-        $_SESSION['roles'] = isset($user['roles']) ? $user['roles'] : ['user'];
         $_SESSION['logged_in'] = true;
         $_SESSION['login_time'] = time();
 

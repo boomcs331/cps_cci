@@ -1,0 +1,127 @@
+:root{
+    --page-bg-start: #f1f5f9;
+    --page-bg-end: #e6eef8;
+    --panel-bg: rgba(255,255,255,0.82);
+    --hero-start: #2563eb;
+    --hero-end: #06b6d4;
+    --muted: #64748b;
+}
+body{
+    background: linear-gradient(135deg, var(--page-bg-start) 0%, var(--page-bg-end) 100%);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+}
+
+.dashboard-wrapper{ max-width:1100px; margin:0 auto; padding:48px 20px; }
+.dashboard-panel{ background:var(--panel-bg); border-radius:18px; padding:22px; box-shadow:0 10px 30px rgba(2,6,23,0.06); border:1px solid rgba(2,6,23,0.04); backdrop-filter: blur(6px); }
+
+.dashboard-header{ display:flex; align-items:center; gap:16px; justify-content:space-between; flex-wrap:wrap; }
+.dashboard-hero{ display:flex; align-items:center; gap:16px; flex:1; background: linear-gradient(90deg,var(--hero-start), var(--hero-end)); color:#fff; padding:18px; border-radius:12px; }
+.dashboard-hero .dashboard-icon{ font-size:44px; opacity:0.98; }
+.dashboard-hero .dashboard-text{ display:flex; flex-direction:column; }
+.dashboard-hero .dashboard-welcome{ font-size:1.25rem; font-weight:700; }
+.dashboard-hero .dashboard-user-id{ font-size:0.95rem; color:rgba(255,255,255,0.9); margin-top:4px; }
+
+.actions { display:flex; align-items:center; gap:12px; margin-left:auto; }
+.logout-btn .btn{
+    white-space: nowrap;
+    background: linear-gradient(90deg,#f97316,#fb923c); /* orange */
+    color: #fff !important;
+    border: 1px solid rgba(249,115,22,0.14);
+    padding: 6px 10px;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(249,115,22,0.06);
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.logout-btn .btn:hover, .logout-btn .btn:focus{
+    background: linear-gradient(90deg,#dc2626,#b91c1c); /* red on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(220,38,38,0.12);
+    color: #fff !important;
+}
+.badges-row{ margin-top:14px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.badge-role{ background: linear-gradient(90deg,#2563eb,#6366f1); color:#fff; padding:8px 12px; border-radius:999px; font-weight:700; box-shadow:0 10px 30px rgba(2,6,23,0.08); font-size:0.97rem; letter-spacing:0.2px; transition: transform .16s cubic-bezier(.2,.9,.2,1), box-shadow .16s ease, filter .12s ease; border:1px solid rgba(255,255,255,0.06); }
+.badge-role:hover{ transform: translateY(-4px) scale(1.03); box-shadow:0 20px 40px rgba(2,6,23,0.12); opacity:1; filter:brightness(1.02); }
+
+/* Make badges behave like buttons (polished) */
+.badge-role-pill{ display:inline-flex; align-items:center; gap:10px; padding:8px 14px; }
+
+/* Size modifiers */
+.badge-role--sm{ padding:6px 10px; font-size:0.85rem; }
+.badge-role--md{ padding:8px 14px; font-size:0.95rem; }
+.badge-role--lg{ padding:10px 16px; font-size:1.05rem; }
+
+/* Tone variants: lighter/darker options to tweak contrast */
+.badge-role--light{ filter:brightness(1.06); box-shadow:0 8px 22px rgba(2,6,23,0.06); }
+/* Icon circle styling for badges */
+.badge-role--dark{ filter:brightness(.94); box-shadow:0 14px 36px rgba(2,6,23,0.12); }
+
+/* Icon circle styling for badges */
+.badge-role i{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background: rgba(255,255,255,0.12); color: #fff; font-size:0.85rem; }
+/* Slightly different icon background for lighter role variants */
+.role-guest .badge-role i, .role-other .badge-role i{ background: rgba(11,18,32,0.06); color:inherit; }
+
+/* Role color variants */
+.role-admin{ background: linear-gradient(90deg,#0f172a,#1e3a8a); /* deep indigo -> royal blue */ }
+.role-staff{ background: linear-gradient(90deg,#065f46,#10b981); /* deep green -> emerald */ }
+.role-viewer{ background: linear-gradient(90deg,#334155,#64748b); /* slate -> cool gray */ }
+.role-guest{ background: linear-gradient(90deg,#f59e0b,#fb923c); color:#0b1220; /* warm amber/orange */ }
+.role-other{ background: linear-gradient(90deg,#6b7280,#94a3b8); color:#fff; }
+
+.dashboard-cards-grid{ margin-top:20px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; }
+
+/* Card entrance animation + subtle float */
+.dashboard-card{
+    background:#fff;
+    border-radius:12px;
+    padding:18px;
+    text-align:center;
+    box-shadow:0 8px 24px rgba(2,6,23,0.06);
+    border:1px solid rgba(2,6,23,0.04);
+    min-height:150px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:8px;
+    transform-origin:center center;
+    will-change: transform, opacity;
+    opacity:0;
+    transform: translateY(18px) scale(0.995);
+    animation: cardEnter 540ms cubic-bezier(.2,.9,.2,1) both;
+}
+
+.dashboard-card .card-icon{ font-size:34px; color:var(--hero-start); transform-origin:center; display:inline-block; animation: iconPop 540ms cubic-bezier(.2,.9,.2,1) both; }
+.dashboard-card h5{ margin:0; font-size:1.05rem; font-weight:700; }
+.dashboard-card p{ margin:0; color:var(--muted); }
+
+/* Hover polish (keeps previous translateY) */
+.dashboard-card:hover{ transform: translateY(-8px) scale(1.02); box-shadow:0 18px 48px rgba(2,6,23,0.12); }
+
+@keyframes cardEnter{
+    0%{ opacity:0; transform: translateY(18px) scale(0.995); }
+    60%{ opacity:1; transform: translateY(-6px) scale(1.01); }
+    100%{ opacity:1; transform: translateY(0) scale(1); }
+}
+
+@keyframes iconPop{
+    0%{ transform: scale(.92); opacity:0; }
+    60%{ transform: scale(1.08); opacity:1; }
+    100%{ transform: scale(1); opacity:1; }
+}
+
+/* Staggered delays for visible visual sequence */
+.dashboard-card.bg-blue{ animation-delay: 0.04s; }
+.dashboard-card.bg-indigo{ animation-delay: 0.12s; }
+.dashboard-card.bg-cyan{ animation-delay: 0.20s; }
+.dashboard-card.bg-light{ animation-delay: 0.28s; }
+
+.bg-blue .card-icon{ color:#1e40af; }
+.bg-indigo .card-icon{ color:#4f46e5; }
+.bg-cyan .card-icon{ color:#0ea5a4; }
+.bg-light .card-icon{ color:#475569; }
+
+@media (max-width:767px){
+    .dashboard-wrapper{ padding:20px; }
+    .dashboard-hero{ flex-direction:column; align-items:flex-start; }
+    .actions{ width:100%; justify-content:flex-end; }
+}

@@ -43,8 +43,8 @@ class HomeController extends Controller
         }
 
         $data = [
-            'title' => 'Dashboard - PHP MVC Framework',
-            'user' => $this->getCurrentUser()
+            'user' => $this->getCurrentUser(),
+            
         ];
 
         $this->view('home/dashboard', $data);
