@@ -5,11 +5,11 @@ class AuthModel extends Model
 
     public function login($user_id)
     {
-        $sql = "SELECT u.*, GROUP_CONCAT(r.name) as roles 
+        $sql = "SELECT u.*, GROUP_CONCAT(r.role_name) as roles 
                 FROM users u 
-                LEFT JOIN user_roles ur ON u.id = ur.id 
-                LEFT JOIN roles r ON ur.role_id = r.role_id 
-                WHERE u.user_id = :user_id AND u.status = 1 
+                LEFT JOIN user_roles ur ON u.id = ur.user_id 
+                LEFT JOIN roles r ON ur.role_id = r.id 
+                WHERE u.user_id = :user_id AND u.active = 1 
                 GROUP BY u.id";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':user_id', $user_id);

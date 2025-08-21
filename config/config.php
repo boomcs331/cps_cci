@@ -10,12 +10,12 @@ date_default_timezone_set('Asia/Bangkok');
 
 // ตั้งค่า database (ถ้ามี)
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'cps');
+define('DB_NAME', 'cps_cci');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
 // ตั้งค่า URL base
-define('BASE_URL', '/cps/');
+define('BASE_URL', '/cps_cci/');
 
 // ตั้งค่า path
 define('ROOT_PATH', __DIR__ . '/../');
