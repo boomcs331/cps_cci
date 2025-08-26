@@ -1,5 +1,5 @@
 <!-- Footer -->
-<footer class="footer">
+<!-- <footer class="footer">
     <div class="container">
         <div class="row">
             <div class="col-lg-4 col-md-6 mb-4">
@@ -73,7 +73,7 @@
             </div>
         </div>
     </div>
-</footer>
+</footer> -->
 
 <script src="<?= BASE_URL ?>lib/js/bootstrap.bundle.min.js"></script>
 <script src="<?= BASE_URL ?>lib/js/jquery-3.7.1.js"></script>

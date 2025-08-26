@@ -165,7 +165,7 @@
                 <div class="action-card__content">
                     <h5>เพิ่มวัสดุใหม่</h5>
                     <p>เพิ่มวัสดุหรือครุภัณฑ์ใหม่เข้าสู่ระบบ</p>
-                    <a href="<?= BASE_URL ?>materials/add" class="btn btn-primary btn-sm">
+                    <a href="<?= BASE_URL ?>materials/dashboard" class="btn btn-primary btn-sm">
                         <i class="fas fa-plus me-1"></i>เพิ่มวัสดุ
                     </a>
                 </div>

@@ -24,6 +24,14 @@ $router->addRoute('/admin/dashboard', 'AdminController', 'dashboard');
 $router->addRoute('/pc/dashboard', 'PcController', 'dashboard');
 $router->addRoute('/user/dashboard', 'UserController', 'dashboard');
 $router->addRoute('/dashboard/dashboard', 'HomeController', 'dashboard');
+$router->addRoute('/materials/dashboard', 'MaterialsController', 'dashboard');
+$router->addRoute('/materials/view', 'MaterialsController', 'viewMaterial');
+$router->addRoute('/materials/add', 'MaterialsController', 'add');
+$router->addRoute('/materials/edit', 'MaterialsController', 'edit');
+$router->addRoute('/materials/delete', 'MaterialsController', 'delete');
+$router->addRoute('/materials/exportCSV', 'MaterialsController', 'exportCSV');
+$router->addRoute('/material-transactions', 'MaterialTransactionsController', 'index');
+
 
 
 

@@ -10,13 +10,13 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>">
+                    <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>dashboard">
                         <i class="fas fa-home me-1"></i>หน้าแรก
                     </a>
                 </li>
                 <?php if (isset($_SESSION['role']) && ($_SESSION['role'] == 'pc' || $_SESSION['role'] == 'admin')): ?>
                 <li class="nav-item">
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'materials') !== false ? 'active' : '' ?>" href="<?= BASE_URL ?>materials">
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'materials') !== false ? 'active' : '' ?>" href="<?= BASE_URL ?>materials/dashboard">
                         <i class="fas fa-boxes me-1"></i>ข้อมูลวัสดุ
                     </a>
                 </li>

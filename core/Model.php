@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../config/config.php';
+
 /**
  * Base Model Class
  * คลาสหลักสำหรับจัดการฐานข้อมูล
