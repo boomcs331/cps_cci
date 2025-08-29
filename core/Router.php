@@ -15,7 +15,7 @@ class Router
     {
         // แปลง route เป็น regex pattern
         $route = preg_replace('/\//', '\\/', $route);
-        $route = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z0-9-]+)', $route);
+        $route = preg_replace('/\{([a-z_]+)\}/', '(?P<\1>[a-zA-Z0-9-_]+)', $route);
         $route = '/^' . $route . '$/i';
 
         $this->routes[$route] = [
@@ -89,7 +89,13 @@ class Router
             if (file_exists($controller_file)) {
                 require_once $controller_file;
                 if (class_exists($controller)) {
-                    $controller_instance = new $controller();
+                    // Check if controller needs database connection
+                    if (in_array($controller, ['MaterialTransactionController', 'MaterialsController', 'AuthenController'])) {
+                        global $pdo;
+                        $controller_instance = new $controller($pdo);
+                    } else {
+                        $controller_instance = new $controller();
+                    }
                     if (method_exists($controller_instance, $action)) {
                         $params = $this->params;
                         unset($params['controller'], $params['action']);

@@ -148,3 +148,259 @@ INSERT INTO material (
 ('EQ005', 'เก้าอี้สำนักงาน', 1, NULL, 'บริษัท Chair Master จำกัด', 3, 18, 'of', 'STORE-02', 'images/office/chair.jpg', 1),
 ('EQ006', 'ตู้เก็บเอกสาร 4 ลิ้นชัก', 1, NULL, 'บริษัท Cabinet Plus จำกัด', 1, 36, 'of', 'STORE-03', NULL, 1),
 ('EQ007', 'เครื่องปรับอากาศ 18000 BTU', 1, NULL, 'บริษัท Cool Air จำกัด', 1, 60, 'of', 'MAINT-01', 'images/office/aircon.jpg', 1);
+
+
+-- สินค้า (ใช้ของเดิมได้)
+-- material (...)
+
+-- 1) Header เอกสาร IN/OUT
+DROP TABLE IF EXISTS material_transactions;
+CREATE TABLE material_transactions (
+  id               INT NOT NULL AUTO_INCREMENT,
+  transaction_no   VARCHAR(50) NOT NULL,
+  transaction_type ENUM('IN','OUT') NOT NULL,
+  date_transaction DATE NOT NULL,
+  remark           TEXT NULL,
+  created_by       VARCHAR(100) NULL,
+  create_date      TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_date     TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_transactions_no (transaction_no),
+  KEY ix_transactions_date (date_transaction),
+  KEY ix_transactions_type (transaction_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 2) รายการบรรทัดในเอกสาร (เก็บหน่วยเป็นชิ้น)
+DROP TABLE IF EXISTS material_transaction_details;
+CREATE TABLE material_transaction_details (
+  id               INT NOT NULL AUTO_INCREMENT,
+  transaction_no   VARCHAR(50) NOT NULL,
+  product_id       VARCHAR(50) NOT NULL,
+  qty_pieces       INT NOT NULL,             -- ปริมาณหน่วยชิ้นที่รับ/จ่าย (IN เป็นบวก, OUT เป็นบวกที่ฝั่งเอกสาร แต่จะหักตอนตัดสต็อก)
+  packing_per_pack INT NOT NULL,             -- ค่าบรรจุ (packing) ณ เวลาทำรายการ
+  packs_derived    INT NOT NULL,             -- FLOOR(qty_pieces / packing_per_pack)
+  remainder_pieces INT NOT NULL,             -- MOD(qty_pieces, packing_per_pack)
+  lot_id           INT NULL,                 -- จะถูกเติมหลังสร้าง lot (สำหรับ IN)
+  qr_code          VARCHAR(255) NULL,        -- ถ้าต้องการอ้างอิง QR ต่อบรรทัด
+  PRIMARY KEY (id),
+  KEY ix_detail_txn (transaction_no),
+  KEY ix_detail_product (product_id),
+  CONSTRAINT fk_detail_header FOREIGN KEY (transaction_no)
+    REFERENCES material_transactions (transaction_no) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 3) Lot ที่เกิดจากการรับเข้า (IN) แต่ละ lot มีคงเหลือของตัวเอง
+DROP TABLE IF EXISTS material_lots;
+CREATE TABLE material_lots (
+  id                 INT NOT NULL AUTO_INCREMENT,
+  product_id         VARCHAR(50) NOT NULL,
+  transaction_no     VARCHAR(50) NOT NULL,   -- เอกสารที่สร้าง lot
+  detail_id          INT NOT NULL,           -- อ้างอิงบรรทัดที่สร้าง lot
+  packing_per_pack   INT NOT NULL,
+  received_pieces    INT NOT NULL,           -- จำนวนชิ้นที่รับเข้าใน lot นี้
+  received_packs     INT NOT NULL,           -- packs_derived ตอนรับเข้า
+  received_remainder INT NOT NULL,           -- remainder_pieces ตอนรับเข้า
+  balance_pieces     INT NOT NULL,           -- คงเหลือ ณ ตอนปัจจุบัน (ชิ้น)
+  status             ENUM('OPEN','CLOSED') NOT NULL DEFAULT 'OPEN',
+  create_date        TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  update_date        TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY ix_lots_product (product_id),
+  KEY ix_lots_status (status),
+  CONSTRAINT fk_lots_detail FOREIGN KEY (detail_id)
+    REFERENCES material_transaction_details (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4) เก็บเฉพาะ lot ที่ยังคงเหลือ (แยกไว้ตามข้อกำหนด)
+DROP TABLE IF EXISTS material_open_lots;
+CREATE TABLE material_open_lots (
+  lot_id         INT NOT NULL,
+  product_id     VARCHAR(50) NOT NULL,
+  balance_pieces INT NOT NULL,
+  PRIMARY KEY (lot_id),
+  KEY ix_openlots_product (product_id),
+  CONSTRAINT fk_openlots_lot FOREIGN KEY (lot_id)
+    REFERENCES material_lots (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 5) สรุปคงคลังต่อสินค้า (มีเฉพาะเมื่อคงเหลือ > 0)
+DROP TABLE IF EXISTS material_stock;
+CREATE TABLE material_stock (
+  product_id     VARCHAR(50) NOT NULL,
+  balance_pieces INT NOT NULL,
+  PRIMARY KEY (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 6) สมุดรายวันสต็อก (Ledger) สำหรับ audit และคำนวณยอดวิ่ง
+DROP TABLE IF EXISTS material_ledger;
+CREATE TABLE material_ledger (
+  id                 INT NOT NULL AUTO_INCREMENT,
+  product_id         VARCHAR(50) NOT NULL,
+  lot_id             INT NULL,               -- OUT อาจถูกตัดหลาย lot -> สร้างหลายบรรทัด
+  transaction_no     VARCHAR(50) NOT NULL,
+  date_transaction   DATE NOT NULL,
+  qty_change_pieces  INT NOT NULL,           -- IN: +, OUT: - (ต่อ lot)
+  balance_after_pcs  INT NOT NULL,           -- ยอดรวมหลังเคลื่อนไหว (ต่อ product)
+  create_date        TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY ix_ledger_product_date (product_id, date_transaction),
+  KEY ix_ledger_txn (transaction_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ========================================
+-- Foreign Keys to ensure referential integrity
+-- ========================================
+
+ALTER TABLE material_transaction_details
+  ADD CONSTRAINT fk_detail_product FOREIGN KEY (product_id)
+    REFERENCES material (product_id) ON UPDATE CASCADE ON DELETE RESTRICT,
+  ADD CONSTRAINT fk_detail_header_no FOREIGN KEY (transaction_no)
+    REFERENCES material_transactions (transaction_no) ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE material_lots
+  ADD CONSTRAINT fk_lots_product FOREIGN KEY (product_id)
+    REFERENCES material (product_id) ON UPDATE CASCADE ON DELETE RESTRICT,
+  ADD CONSTRAINT fk_lots_header_no FOREIGN KEY (transaction_no)
+    REFERENCES material_transactions (transaction_no) ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE material_open_lots
+  ADD CONSTRAINT fk_openlots_product FOREIGN KEY (product_id)
+    REFERENCES material (product_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE material_stock
+  ADD CONSTRAINT fk_stock_product FOREIGN KEY (product_id)
+    REFERENCES material (product_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE material_ledger
+  ADD CONSTRAINT fk_ledger_product FOREIGN KEY (product_id)
+    REFERENCES material (product_id) ON UPDATE CASCADE ON DELETE RESTRICT,
+  ADD CONSTRAINT fk_ledger_lot FOREIGN KEY (lot_id)
+    REFERENCES material_lots (id) ON UPDATE CASCADE ON DELETE SET NULL,
+  ADD CONSTRAINT fk_ledger_header_no FOREIGN KEY (transaction_no)
+    REFERENCES material_transactions (transaction_no) ON UPDATE CASCADE ON DELETE CASCADE;
+
+-- ========================================
+-- Stored Procedure: FIFO issue by detail_id
+-- ========================================
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_material_issue_fifo $$
+CREATE PROCEDURE sp_material_issue_fifo(IN p_detail_id INT)
+BEGIN
+  DECLARE v_product_id VARCHAR(50);
+  DECLARE v_qty_needed INT;
+  DECLARE v_txn_no VARCHAR(50);
+  DECLARE v_txn_date DATE;
+
+  SELECT d.product_id, d.qty_pieces, d.transaction_no, t.date_transaction
+    INTO v_product_id, v_qty_needed, v_txn_no, v_txn_date
+  FROM material_transaction_details d
+  JOIN material_transactions t ON t.transaction_no = d.transaction_no
+  WHERE d.id = p_detail_id;
+
+  WHILE v_qty_needed > 0 DO
+    DECLARE v_lot_id INT;
+    DECLARE v_lot_balance INT;
+
+    SELECT ol.lot_id, ol.balance_pieces
+      INTO v_lot_id, v_lot_balance
+    FROM material_open_lots ol
+    WHERE ol.product_id = v_product_id
+    ORDER BY ol.lot_id
+    LIMIT 1;
+
+    IF v_lot_id IS NULL THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Insufficient stock for FIFO issue';
+    END IF;
+
+    IF v_qty_needed >= v_lot_balance THEN
+      -- consume entire lot
+      SET v_qty_needed = v_qty_needed - v_lot_balance;
+
+      UPDATE material_lots SET balance_pieces = 0, status = 'CLOSED' WHERE id = v_lot_id;
+      DELETE FROM material_open_lots WHERE lot_id = v_lot_id;
+
+      UPDATE material_stock SET balance_pieces = balance_pieces - v_lot_balance WHERE product_id = v_product_id;
+      DELETE FROM material_stock WHERE product_id = v_product_id AND balance_pieces = 0;
+
+      INSERT INTO material_ledger (product_id, lot_id, transaction_no, date_transaction, qty_change_pieces, balance_after_pcs)
+      SELECT v_product_id, v_lot_id, v_txn_no, v_txn_date, -v_lot_balance,
+             COALESCE((SELECT balance_pieces FROM material_stock WHERE product_id = v_product_id), 0);
+    ELSE
+      -- consume partially
+      UPDATE material_lots SET balance_pieces = balance_pieces - v_qty_needed WHERE id = v_lot_id;
+      UPDATE material_open_lots SET balance_pieces = balance_pieces - v_qty_needed WHERE lot_id = v_lot_id;
+      UPDATE material_stock SET balance_pieces = balance_pieces - v_qty_needed WHERE product_id = v_product_id;
+
+      INSERT INTO material_ledger (product_id, lot_id, transaction_no, date_transaction, qty_change_pieces, balance_after_pcs)
+      SELECT v_product_id, v_lot_id, v_txn_no, v_txn_date, -v_qty_needed,
+             COALESCE((SELECT balance_pieces FROM material_stock WHERE product_id = v_product_id), 0);
+
+      SET v_qty_needed = 0;
+    END IF;
+  END WHILE;
+END $$
+DELIMITER ;
+
+-- ========================================
+-- Triggers to automate packing and stock movements
+-- ========================================
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS bi_mtd_compute_pack $$
+CREATE TRIGGER bi_mtd_compute_pack
+BEFORE INSERT ON material_transaction_details
+FOR EACH ROW
+BEGIN
+  IF NEW.packing_per_pack IS NULL OR NEW.packing_per_pack <= 0 THEN
+    SET NEW.packing_per_pack = COALESCE((SELECT m.packing FROM material m WHERE m.product_id = NEW.product_id), 1);
+  END IF;
+  SET NEW.packs_derived = FLOOR(NEW.qty_pieces / NEW.packing_per_pack);
+  SET NEW.remainder_pieces = MOD(NEW.qty_pieces, NEW.packing_per_pack);
+END $$
+DELIMITER ;
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS ai_mtd_handle_inout $$
+CREATE TRIGGER ai_mtd_handle_inout
+AFTER INSERT ON material_transaction_details
+FOR EACH ROW
+BEGIN
+  DECLARE v_type ENUM('IN','OUT');
+  DECLARE v_now_stock INT;
+  DECLARE v_lot_id INT;
+  DECLARE v_txn_date DATE;
+
+  SELECT t.transaction_type, t.date_transaction INTO v_type, v_txn_date
+  FROM material_transactions t WHERE t.transaction_no = NEW.transaction_no;
+
+  IF v_type = 'IN' THEN
+    -- create lot
+    INSERT INTO material_lots (product_id, transaction_no, detail_id, packing_per_pack, received_pieces, received_packs, received_remainder, balance_pieces)
+    VALUES (NEW.product_id, NEW.transaction_no, NEW.id, NEW.packing_per_pack, NEW.qty_pieces, NEW.packs_derived, NEW.remainder_pieces, NEW.qty_pieces);
+    SET v_lot_id = LAST_INSERT_ID();
+
+    -- link back lot_id (optional)
+    UPDATE material_transaction_details SET lot_id = v_lot_id WHERE id = NEW.id;
+
+    -- open lot entry
+    INSERT INTO material_open_lots (lot_id, product_id, balance_pieces)
+    VALUES (v_lot_id, NEW.product_id, NEW.qty_pieces);
+
+    -- upsert stock
+    INSERT INTO material_stock (product_id, balance_pieces)
+    VALUES (NEW.product_id, NEW.qty_pieces)
+    ON DUPLICATE KEY UPDATE balance_pieces = balance_pieces + VALUES(balance_pieces);
+
+    -- ledger (+)
+    SET v_now_stock = (SELECT balance_pieces FROM material_stock WHERE product_id = NEW.product_id);
+    INSERT INTO material_ledger (product_id, lot_id, transaction_no, date_transaction, qty_change_pieces, balance_after_pcs)
+    VALUES (NEW.product_id, v_lot_id, NEW.transaction_no, v_txn_date, NEW.qty_pieces, v_now_stock);
+
+  ELSEIF v_type = 'OUT' THEN
+    -- consume FIFO by detail id
+    CALL sp_material_issue_fifo(NEW.id);
+  END IF;
+END $$
+DELIMITER ;

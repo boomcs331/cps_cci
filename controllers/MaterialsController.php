@@ -1,13 +1,15 @@
 <?php
-require_once 'models/Material.php';
+require_once 'core/BaseController.php';
+require_once 'models/MaterialModel.php';
 
-class MaterialsController extends Controller
+class MaterialsController extends BaseController
 {
     private $materialModel;
 
-    public function __construct()
+    public function __construct($database = null)
     {
-        $this->materialModel = new Material();
+        parent::__construct($database);
+        $this->materialModel = new MaterialModel($database);
     }
 
     /**
@@ -48,8 +50,9 @@ class MaterialsController extends Controller
         }
 
         // ดึงข้อมูลวัตถุดิบ
-        $materials = $this->materialModel->getMaterials($search, $type, $active, $page, $limit, $sort, $order);
-        $totalCount = $this->materialModel->getMaterialsCount($search, $type, $active);
+        $offset = ($page - 1) * $limit;
+        $materials = $this->materialModel->getActiveMaterials($search, $limit, $offset);
+        $totalCount = $this->materialModel->getActiveCount($search);
         $totalPages = ceil($totalCount / $limit);
 
         // ดึงข้อมูลสำหรับ dropdown
@@ -85,7 +88,7 @@ class MaterialsController extends Controller
             $this->redirect('login');
         }
 
-        $material = $this->materialModel->getMaterialById($id);
+        $material = $this->materialModel->find($id);
         if (!$material) {
             $_SESSION['error'] = 'ไม่พบข้อมูลวัตถุดิบ';
             $this->redirect('materials/dashboard');
@@ -124,7 +127,7 @@ class MaterialsController extends Controller
                 'active' => 1
             ];
 
-            if ($this->materialModel->addMaterial($data)) {
+            if ($this->materialModel->create($data)) {
                 $_SESSION['success'] = 'เพิ่มวัตถุดิบเรียบร้อยแล้ว';
                 $this->redirect('materials/dashboard');
             } else {
@@ -150,7 +153,7 @@ class MaterialsController extends Controller
             $this->redirect('login');
         }
 
-        $material = $this->materialModel->getMaterialById($id);
+        $material = $this->materialModel->find($id);
         if (!$material) {
             $_SESSION['error'] = 'ไม่พบข้อมูลวัตถุดิบ';
             $this->redirect('materials/dashboard');
@@ -171,7 +174,7 @@ class MaterialsController extends Controller
                 'active' => (int)$this->getPost('active')
             ];
 
-            if ($this->materialModel->updateMaterial($id, $data)) {
+            if ($this->materialModel->update($id, $data)) {
                 $_SESSION['success'] = 'แก้ไขข้อมูลเรียบร้อยแล้ว';
                 $this->redirect('materials/dashboard');
             } else {
@@ -198,7 +201,7 @@ class MaterialsController extends Controller
             $this->redirect('login');
         }
 
-        if ($this->materialModel->deleteMaterial($id)) {
+        if ($this->materialModel->delete($id)) {
             $_SESSION['success'] = 'ลบข้อมูลเรียบร้อยแล้ว';
         } else {
             $_SESSION['error'] = 'เกิดข้อผิดพลาดในการลบข้อมูล';
@@ -224,7 +227,7 @@ class MaterialsController extends Controller
         $order = $this->getGet('order') ?? 'ASC';
 
         // ดึงข้อมูลทั้งหมด (ไม่มีการแบ่งหน้า)
-        $materials = $this->materialModel->getMaterialsForExport($search, $type, $active, $sort, $order);
+        $materials = $this->materialModel->getActiveMaterials($search, 1000, 0);
         $types = $this->materialModel->getTypes();
 
         // ตั้งค่า header สำหรับ CSV

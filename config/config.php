@@ -24,4 +24,13 @@ define('CORE_PATH', ROOT_PATH . 'core/');
 define('VIEWS_PATH', ROOT_PATH . 'views/');
 define('MODELS_PATH', ROOT_PATH . 'models/');
 define('CONTROLLERS_PATH', ROOT_PATH . 'controllers/');
+
+// Database connection
+try {
+    $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die('Database connection failed: ' . $e->getMessage());
+}
 ?> 

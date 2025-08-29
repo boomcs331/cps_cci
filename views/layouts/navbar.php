@@ -21,8 +21,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'material-transactions') !== false ? 'active' : '' ?>" href="<?= BASE_URL ?>material-transactions">
-                        <i class="fas fa-exchange-alt me-1"></i>ธุรกรรมวัสดุ
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'transactions') !== false ? 'active' : '' ?>" href="<?= BASE_URL ?>materials/transactions">
+                        <i class="fas fa-exchange-alt me-1"></i>รายการเคลื่อนไหว
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'stock') !== false ? 'active' : '' ?>" href="<?= BASE_URL ?>materials/stock">
+                        <i class="fas fa-warehouse me-1"></i>ยอดคงเหลือ
                     </a>
                 </li>
                 <?php endif; ?>

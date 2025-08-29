@@ -2,8 +2,9 @@
 // Entry point ของแอปพลิเคชัน
 require_once 'config/config.php';
 require_once 'core/Router.php';
-require_once 'core/Controller.php';
-require_once 'core/Model.php';
+require_once 'core/BaseController.php';
+require_once 'core/BaseModel.php';
+require_once 'controllers/MaterialTransactionController.php';
 
 // เริ่มต้น session
 if (session_status() == PHP_SESSION_NONE) {
@@ -30,7 +31,12 @@ $router->addRoute('/materials/add', 'MaterialsController', 'add');
 $router->addRoute('/materials/edit', 'MaterialsController', 'edit');
 $router->addRoute('/materials/delete', 'MaterialsController', 'delete');
 $router->addRoute('/materials/exportCSV', 'MaterialsController', 'exportCSV');
-$router->addRoute('/material-transactions', 'MaterialTransactionsController', 'index');
+$router->addRoute('/materials/transactions', 'MaterialTransactionController', 'index');
+$router->addRoute('/materials/transaction-detail', 'MaterialTransactionController', 'detail');
+$router->addRoute('/materials/stock', 'MaterialTransactionController', 'stock');
+$router->addRoute('/materials/receive', 'MaterialTransactionController', 'receive');
+$router->addRoute('/materials/issue', 'MaterialTransactionController', 'issue');
+
 
 
 

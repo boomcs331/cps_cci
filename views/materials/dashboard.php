@@ -335,7 +335,7 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-info">
-                                            <?= number_format($material['due']) ?>
+                                            <?= number_format($material['due'] ?? 0) ?>
                                         </span>
                                     </td>
                                     <td><?= htmlspecialchars($material['location_plan'] ?? '-') ?></td>
@@ -457,7 +457,7 @@
                                 </div>
                                 <div class="col-6">
                                     <small class="text-muted">ตัวคูณ:</small><br>
-                                    <span class="badge bg-info"><?= number_format($material['due']) ?></span>
+                                    <span class="badge bg-info"><?= number_format($material['due'] ?? 0) ?></span>
                                 </div>
                             </div>
                             <p class="card-text text-muted small mb-2">

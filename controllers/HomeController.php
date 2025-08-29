@@ -1,9 +1,11 @@
 <?php
+require_once 'core/BaseController.php';
+
 /**
  * Home Controller
  * จัดการหน้าแรกและหน้าอื่นๆ
  */
-class HomeController extends Controller
+class HomeController extends BaseController
 {
     /**
      * หน้าแรก
@@ -43,8 +45,17 @@ class HomeController extends Controller
         }
 
         $data = [
-            'user' => $this->getCurrentUser(),
-            
+            'user' => [
+                'user_name' => $_SESSION['user_name'] ?? 'ผู้ใช้',
+                'user_id' => $_SESSION['user_id'] ?? '',
+                'role' => $_SESSION['role'] ?? 'user',
+                'roles' => $_SESSION['roles'] ?? []
+            ],
+            'current_user' => [
+                'user_name' => $_SESSION['user_name'] ?? 'ผู้ใช้',
+                'user_id' => $_SESSION['user_id'] ?? '',
+                'role' => $_SESSION['role'] ?? 'user'
+            ]
         ];
 
         $this->view('home/dashboard', $data);

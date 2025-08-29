@@ -1,5 +1,7 @@
 <?php
-class AuthModel extends Model
+require_once 'core/BaseModel.php';
+
+class AuthModel extends BaseModel
 {
     protected $table = 'users';
 

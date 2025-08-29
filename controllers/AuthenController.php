@@ -1,12 +1,15 @@
 <?php
+require_once 'core/BaseController.php';
+require_once 'models/AuthModel.php';
 
-class AuthenController extends Controller
+class AuthenController extends BaseController
 {
     private $authModel;
 
-    public function __construct()
+    public function __construct($database = null)
     {
-        $this->authModel = $this->model('AuthModel');
+        parent::__construct($database);
+        $this->authModel = new AuthModel($database);
     }
 
     public function login()
